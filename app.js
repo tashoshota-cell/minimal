@@ -2,6 +2,7 @@ const KEY='minimal_records_v1';
 const $=s=>document.querySelector(s);
 const form=$('#recordForm'), historyEl=$('#history');
 let records=JSON.parse(localStorage.getItem(KEY)||'[]');
+let monthlyChart=null;
 
 $('#date').value=new Date().toISOString().slice(0,10);
 
@@ -21,12 +22,33 @@ function streakDays(){
   return streak;
 }
 
+
+function renderMonthlyChart(){
+  const canvas=document.getElementById('monthlyChart');
+  if(!canvas || typeof Chart==='undefined') return;
+  const now=new Date();
+  const months=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months.push({key,label:`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`});
+  }
+  const data=months.map(m=>records.filter(r=>r.date && r.date.startsWith(m.key)).length);
+  if(monthlyChart) monthlyChart.destroy();
+  monthlyChart=new Chart(canvas,{
+    type:'bar',
+    data:{labels:months.map(m=>m.label),datasets:[{label:'手放した数',data}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>`${ctx.raw} 個`}}},scales:{y:{beginAtZero:true,ticks:{precision:0,stepSize:1}},x:{grid:{display:false}}}}
+  });
+}
+
 function render(){
   const now=new Date(), ym=now.toISOString().slice(0,7);
   $('#totalCount').textContent=records.length;
   $('#monthCount').textContent=records.filter(r=>r.date.startsWith(ym)).length;
   $('#streakCount').textContent=streakDays();
   $('#salesTotal').textContent=yen(records.reduce((s,r)=>s+(Number(r.price)||0),0));
+  renderMonthlyChart();
 
   const q=$('#search').value.trim().toLowerCase();
   const filtered=[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt)

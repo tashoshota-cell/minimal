@@ -70,6 +70,15 @@
 
     <section class="card">
       <div class="sectionHead">
+        <h2>月別グラフ</h2>
+      </div>
+      <div class="chartWrap">
+        <canvas id="monthlyChart" aria-label="月別に手放した数"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="sectionHead">
         <h2>履歴</h2>
         <input id="search" class="search" placeholder="検索" />
       </div>
@@ -92,6 +101,7 @@
     </article>
   </template>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
