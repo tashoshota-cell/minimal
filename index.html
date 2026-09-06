@@ -7,7 +7,7 @@
   <title>Minimal</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg">
-  <link rel="stylesheet" href="./style.css?v=3">
+  <link rel="stylesheet" href="./style.css?v=4">
 </head>
 <body>
 <main class="wrap">
@@ -44,11 +44,17 @@
   </section>
 
   <section class="card">
+    <div class="sectionHead"><h2>週間ふりかえり</h2><span id="weeklySummary" class="weeklySummary"></span></div>
+    <p class="hint">直近12週間。●＝手放した日あり、○＝手放せなかった週</p>
+    <div id="weeklyReview" class="weeklyReview"></div>
+  </section>
+
+  <section class="card">
     <div class="sectionHead"><h2>履歴</h2><input id="search" placeholder="検索"></div>
     <div id="history"></div>
-    <button id="exportBtn" class="secondary">データを書き出す</button>
+    <button id="exportBtn" class="secondary">CSVをダウンロード</button>
   </section>
 </main>
-<script src="./app.js?v=3"></script>
+<script src="./app.js?v=4"></script>
 </body>
 </html>

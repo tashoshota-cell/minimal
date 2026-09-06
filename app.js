@@ -83,6 +83,39 @@ function renderChart(){
   root.appendChild(bars);
 }
 
+function renderWeeklyReview(){
+  const root=$('#weeklyReview');
+  const summary=$('#weeklySummary');
+  if(!root) return;
+  root.innerHTML='';
+
+  const startOfWeek=d=>{
+    const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    const day=(x.getDay()+6)%7; // Monday=0
+    x.setDate(x.getDate()-day);
+    x.setHours(0,0,0,0);
+    return x;
+  };
+  const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const current=startOfWeek(new Date());
+  let activeWeeks=0;
+
+  for(let i=11;i>=0;i--){
+    const s=new Date(current); s.setDate(s.getDate()-i*7);
+    const e=new Date(s); e.setDate(e.getDate()+6);
+    const start=fmt(s), end=fmt(e);
+    const count=records.filter(r=>r.date>=start && r.date<=end).length;
+    if(count>0) activeWeeks++;
+
+    const box=document.createElement('div');
+    box.className='weekBox '+(count>0?'weekYes':'weekNo');
+    box.innerHTML=`<div class="weekMark">${count>0?'●':'○'}</div><b>${s.getMonth()+1}/${s.getDate()}</b><span>${count>0?count+'個':'0個'}</span>`;
+    box.title=`${start}〜${end}: ${count}個`;
+    root.appendChild(box);
+  }
+  if(summary) summary.textContent=`12週中 ${activeWeeks}週`;
+}
+
 function render(){
   const ym=today().slice(0,7);
   $('#total').textContent=records.length;
@@ -90,6 +123,7 @@ function render(){
   $('#streak').textContent=streak();
   $('#sales').textContent=yen(records.reduce((s,r)=>s+r.price,0));
   renderChart();
+  renderWeeklyReview();
   const q=$('#search').value.trim().toLowerCase();
   const list=records.filter(r=>JSON.stringify(r).toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));
   const h=$('#history'); h.innerHTML='';
@@ -110,8 +144,17 @@ $('#form').addEventListener('submit',e=>{
 });
 $('#search').addEventListener('input',render);
 $('#exportBtn').onclick=()=>{
-  const blob=new Blob([JSON.stringify(records,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`minimal-${today()}.json`;a.click();URL.revokeObjectURL(a.href);
+  const esc=v=>{
+    const s=String(v??'');
+    return /[",\n]/.test(s)?`"${s.replaceAll('"','""')}"`:s;
+  };
+  const header=['日付','アイテム名','カテゴリ','手放し方','売却額','メモ'];
+  const rows=records.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(r=>[
+    r.date,r.name,r.category,r.method,r.price||0,r.memo||''
+  ]);
+  const csv='\uFEFF'+[header,...rows].map(row=>row.map(esc).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`minimal-${today()}.csv`;a.click();URL.revokeObjectURL(a.href);
 };
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').hidden=false});
